@@ -10,6 +10,9 @@
 #define MonoGFX_COLOR_ON		1
 #define MonoGFX_COLOR_INVERT	2
 
+// 2^3 bits in a byte
+#define MonoGFX_BYTE_SIZE		3
+
 
 typedef enum {
 	MonoGFX_DISPLAY_MODE_HORIZONTAL,

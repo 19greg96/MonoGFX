@@ -41,27 +41,33 @@ uint8_t MonoGFX_set_pixel(int32_t x, int32_t y, uint8_t v) {
 	if (x < 0 || x >= activeBuffer->width || y < 0 || y >= activeBuffer->height) {
 		return -1;
 	}
-	// TODO: display width and height are hardcoded here:
-	// MonoGFX_DISPLAY_MODE_HORIZONTAL: 240*128
-	// MonoGFX_DISPLAY_MODE_VERTICAL: 128*64
+	
+	uint32_t bufferPos = 0; // initialized to avoid warning, TODO: use switch below and default case to solve this.
+	uint8_t byteVal = 0;
+	if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+		// In a 16*2 display, four bytes of the buffer, A, B, C and D are arranged the following way:
+		// aaaaaaaabbbbbbbb
+		// ccccccccdddddddd
+		// BYTE_SIZE = 8 = 2^3
+		// row size in bytes = (width / BYTE_SIZE)
+		// Buffer position for a pixel at location (x, y) is:
+		// (width / BYTE_SIZE) * y + (x / BYTE_SIZE)
+		// (width * y + x) / BYTE_SIZE
+		// (width * y + x) >> 3
+		// activeBuffer->buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
+		bufferPos = (activeBuffer->width * y + x) >> MonoGFX_BYTE_SIZE;
+		byteVal = 0x80 >> (x & 7); // bits arranged left to right
+	} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
+		bufferPos = x + ((y >> MonoGFX_BYTE_SIZE) * activeBuffer->width);
+		byteVal = 0x01 << (y & 7); // bits arranged bottom to top
+	}
+	
 	if (v == MonoGFX_COLOR_ON) {
-		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-			activeBuffer->buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
-		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
-			activeBuffer->buffer[x + ((y >> 3) << 7)] |= 0x01 << (y & 7); // bits arranged in columns
-		}
+		activeBuffer->buffer[bufferPos] |= byteVal;
 	} else if (v == MonoGFX_COLOR_INVERT) {
-		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-			activeBuffer->buffer[30 * y + (x >> 3)] ^= 0x80 >> (x & 7);
-		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
-			activeBuffer->buffer[x + ((y >> 3) << 7)] ^= 0x01 << (y & 7);
-		}
+		activeBuffer->buffer[bufferPos] ^= byteVal;
 	} else if (v == MonoGFX_COLOR_OFF) {
-		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-			activeBuffer->buffer[30 * y + (x >> 3)] &= ~(0x80 >> (x & 7));
-		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
-			activeBuffer->buffer[x + ((y >> 3) << 7)] &= ~(0x01 << (y & 7));
-		}
+		activeBuffer->buffer[bufferPos] &= ~byteVal;
 	}
 	return v;
 }
@@ -73,9 +79,9 @@ uint8_t MonoGFX_get_pixel(int32_t x, int32_t y) {
 		return -1;
 	}
 	if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-		return (activeBuffer->buffer[30 * y + (x >> 3)] >> ((~x) & 7)) & 1;
+		return (activeBuffer->buffer[(activeBuffer->width * y + x) >> MonoGFX_BYTE_SIZE] >> ((~x) & 7)) & 1;
 	} else {
-		return (activeBuffer->buffer[x + ((y >> 3) << 7)] >> (y & 7)) & 1;
+		return (activeBuffer->buffer[x + ((y >> MonoGFX_BYTE_SIZE) * activeBuffer->width)] >> (y & 7)) & 1;
 	}
 }
 
