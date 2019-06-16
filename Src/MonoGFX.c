@@ -32,7 +32,7 @@ void MonoGFX_clear() {
 }
 
 uint8_t* MonoGFX_getBuffer(uint32_t* buffSize) {
-	if (buffSize != NULL)
+	if (buffSize != NULL) {
 		*buffSize = MonoGFX_bufferSize;
 	}
 	return MonoGFX_backBuffer;
