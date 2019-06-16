@@ -179,7 +179,7 @@ void MonoGFX_draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t c
 	MonoGFX_draw_line_style(x0, y0, x1, y1, MonoGFX_LINE_STYLE_SOLID, color);
 }
 // Bresenham's algorithm - thx wikpedia
-void MonoGFX_draw_line_style(int32_t x0, int32_t y0, int32_t x1, int32_t y1, MonoGFX_LineStyle style, uint8_t color) {
+void MonoGFX_draw_line_style(int32_t x0, int32_t y0, int32_t x1, int32_t y1, MonoGFX_LineStyleTypedef style, uint8_t color) {
 	if (style == MonoGFX_LINE_STYLE_NONE) {
 		return;
 	}

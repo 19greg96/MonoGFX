@@ -52,7 +52,7 @@ void MonoGFX_draw_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color);
 void MonoGFX_fill_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color);
 
 void MonoGFX_draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color);
-void MonoGFX_draw_line_style(int32_t x0, int32_t y0, int32_t x1, int32_t y1, MonoGFX_LineStyle style, uint8_t color);
+void MonoGFX_draw_line_style(int32_t x0, int32_t y0, int32_t x1, int32_t y1, MonoGFX_LineStyleTypedef style, uint8_t color);
 
 void MonoGFX_draw_rect(int32_t x, int32_t y, uint32_t w, uint32_t h, uint8_t color);
 void MonoGFX_fill_rect(int32_t x, int32_t y, uint32_t w, uint32_t h, uint8_t color);
