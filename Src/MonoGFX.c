@@ -4,70 +4,79 @@
 #include <stdlib.h>
 
 
-uint32_t MonoGFX_width;
-uint32_t MonoGFX_height;
-
-uint8_t* MonoGFX_backBuffer;
-uint32_t MonoGFX_bufferSize;
+MonoGFX_BufferTypedef* activeBuffer = NULL;
 
 void MonoGFX_flood_fill_util(int32_t x, int32_t y, uint8_t prevC, uint8_t newC);
 void MonoGFX_draw_circle_util(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, uint8_t color);
 void MonoGFX_fill_circle_util(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t centerLength, uint8_t color);
 
 
-void MonoGFX_init(uint32_t w, uint32_t h) {
-	MonoGFX_width = w;
-	MonoGFX_height = h;
+void MonoGFX_init(MonoGFX_BufferTypedef* buff) {
+	MonoGFX_setActiveBuffer(buff);
 	
-	MonoGFX_bufferSize = MonoGFX_width * MonoGFX_height / 8;
-	MonoGFX_backBuffer = (uint8_t*)malloc(sizeof(uint8_t) * MonoGFX_bufferSize); // data size is 8
-	
-	MonoGFX_clear();
+	activeBuffer->bufferSize = activeBuffer->width * activeBuffer->height / 8;
+	activeBuffer->buffer = (uint8_t*)calloc(sizeof(uint8_t) * activeBuffer->bufferSize, sizeof(uint8_t)); // data size is 8
+}
+void MonoGFX_deinit(MonoGFX_BufferTypedef* buff) {
+	free(buff->buffer);
+}
+
+void MonoGFX_setActiveBuffer(MonoGFX_BufferTypedef* buff) {
+	activeBuffer = buff;
+}
+MonoGFX_BufferTypedef* MonoGFX_getActiveBuffer() {
+	return activeBuffer;
 }
 
 void MonoGFX_clear() {
-	for (uint32_t i = 0; i < MonoGFX_bufferSize; i ++) {
-		MonoGFX_backBuffer[i] = 0;
-	}
-}
-
-uint8_t* MonoGFX_getBuffer(uint32_t* buffSize) {
-	if (buffSize != NULL) {
-		*buffSize = MonoGFX_bufferSize;
-	}
-	return MonoGFX_backBuffer;
-}
-void MonoGFX_getDisplaySize(uint32_t* w, uint32_t* h) {
-	if (w != NULL) {
-		*w = MonoGFX_width;
-	}
-	if (w != NULL) {
-		*h = MonoGFX_height;
+	for (uint32_t i = 0; i < activeBuffer->bufferSize; i ++) {
+		activeBuffer->buffer[i] = 0;
 	}
 }
 
 uint8_t MonoGFX_set_pixel(int32_t x, int32_t y, uint8_t v) {
-	if (x < 0 || x >= MonoGFX_width || y < 0 || y >= MonoGFX_height) {
+	if (activeBuffer == NULL) {
 		return -1;
 	}
+	if (x < 0 || x >= activeBuffer->width || y < 0 || y >= activeBuffer->height) {
+		return -1;
+	}
+	// TODO: display width and height are hardcoded here:
+	// MonoGFX_DISPLAY_MODE_HORIZONTAL: 240*128
+	// MonoGFX_DISPLAY_MODE_VERTICAL: 128*64
 	if (v == MonoGFX_COLOR_ON) {
-		//MonoGFX_new_buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
-		MonoGFX_backBuffer[x + ((y >> 3) << 7)] |= 0x01 << (y & 7); // bits arranged in columns
+		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+			activeBuffer->buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
+		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
+			activeBuffer->buffer[x + ((y >> 3) << 7)] |= 0x01 << (y & 7); // bits arranged in columns
+		}
 	} else if (v == MonoGFX_COLOR_INVERT) {
-		//MonoGFX_new_buffer[30 * y + (x >> 3)] ^= 0x80 >> (x & 7);
-		MonoGFX_backBuffer[x + ((y >> 3) << 7)] ^= 0x01 << (y & 7);
+		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+			activeBuffer->buffer[30 * y + (x >> 3)] ^= 0x80 >> (x & 7);
+		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
+			activeBuffer->buffer[x + ((y >> 3) << 7)] ^= 0x01 << (y & 7);
+		}
 	} else if (v == MonoGFX_COLOR_OFF) {
-		//MonoGFX_new_buffer[30 * y + (x >> 3)] &= ~(0x80 >> (x & 7));
-		MonoGFX_backBuffer[x + ((y >> 3) << 7)] &= ~(0x01 << (y & 7));
+		if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+			activeBuffer->buffer[30 * y + (x >> 3)] &= ~(0x80 >> (x & 7));
+		} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
+			activeBuffer->buffer[x + ((y >> 3) << 7)] &= ~(0x01 << (y & 7));
+		}
 	}
 	return v;
 }
 uint8_t MonoGFX_get_pixel(int32_t x, int32_t y) {
-	if (x < 0 || x > MonoGFX_width || y < 0 || y > MonoGFX_height) {
+	if (activeBuffer == NULL) {
 		return -1;
 	}
-	// return (MonoGFX_new_buffer[30 * y + (x >> 3)] >> ((~x) & 7)) & 1;
-	return (MonoGFX_backBuffer[x + ((y >> 3) << 7)] >> (y & 7)) & 1;
+	if (x < 0 || x >= activeBuffer->width || y < 0 || y >= activeBuffer->height) {
+		return -1;
+	}
+	if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+		return (activeBuffer->buffer[30 * y + (x >> 3)] >> ((~x) & 7)) & 1;
+	} else {
+		return (activeBuffer->buffer[x + ((y >> 3) << 7)] >> (y & 7)) & 1;
+	}
 }
 
 void MonoGFX_flood_fill_util(int32_t x, int32_t y, uint8_t prevC, uint8_t newC) {

@@ -6,15 +6,25 @@
 
 
 
-void MonoGFX_init(uint32_t w, uint32_t h);
-void MonoGFX_clear();
-
-uint8_t* MonoGFX_getBuffer(uint32_t* buffSize);
-void MonoGFX_getDisplaySize(uint32_t* w, uint32_t* h);
-
 #define MonoGFX_COLOR_OFF		0
 #define MonoGFX_COLOR_ON		1
 #define MonoGFX_COLOR_INVERT	2
+
+
+typedef enum {
+	MonoGFX_DISPLAY_MODE_HORIZONTAL,
+	MonoGFX_DISPLAY_MODE_VERTICAL
+} MonoGFX_BufferModeTypedef;
+
+typedef struct {
+	uint32_t width;
+	uint32_t height;
+	
+	uint32_t bufferSize;
+	uint8_t* buffer;
+	
+	MonoGFX_BufferModeTypedef mode;
+} MonoGFX_BufferTypedef;
 
 typedef enum {
 	MonoGFX_LINE_STYLE_NONE,
@@ -22,7 +32,16 @@ typedef enum {
 	MonoGFX_LINE_STYLE_DOTS,
 	MonoGFX_LINE_STYLE_DASHES,
 	MonoGFX_LINE_STYLE_SPARSE_DOTS
-} MonoGFX_LineStyle;
+} MonoGFX_LineStyleTypedef;
+
+
+void MonoGFX_init(MonoGFX_BufferTypedef* buff);
+void MonoGFX_deinit(MonoGFX_BufferTypedef* buff);
+
+void MonoGFX_setActiveBuffer(MonoGFX_BufferTypedef* buff);
+MonoGFX_BufferTypedef* MonoGFX_getActiveBuffer();
+
+void MonoGFX_clear();
 
 uint8_t MonoGFX_set_pixel(int32_t x, int32_t y, uint8_t v);
 uint8_t MonoGFX_get_pixel(int32_t x, int32_t y);
