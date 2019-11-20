@@ -1,7 +1,6 @@
 #ifndef __MonoGFX_H
 #define __MonoGFX_H
 
-
 #include <stdint.h>
 
 
@@ -17,7 +16,7 @@
 typedef enum {
 	MonoGFX_DISPLAY_MODE_HORIZONTAL,
 	MonoGFX_DISPLAY_MODE_VERTICAL
-} MonoGFX_BufferModeTypedef;
+} MonoGFX_DisplayModeTypedef;
 
 typedef struct {
 	uint32_t width;
@@ -26,8 +25,8 @@ typedef struct {
 	uint32_t bufferSize;
 	uint8_t* buffer;
 	
-	MonoGFX_BufferModeTypedef mode;
-} MonoGFX_BufferTypedef;
+	MonoGFX_DisplayModeTypedef mode;
+} MonoGFX_DisplayTypedef;
 
 typedef enum {
 	MonoGFX_LINE_STYLE_NONE,
@@ -38,12 +37,17 @@ typedef enum {
 } MonoGFX_LineStyleTypedef;
 
 
-void MonoGFX_init(MonoGFX_BufferTypedef* buff);
-void MonoGFX_deinit(MonoGFX_BufferTypedef* buff);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void MonoGFX_setActiveBuffer(MonoGFX_BufferTypedef* buff);
-MonoGFX_BufferTypedef* MonoGFX_getActiveBuffer();
+void MonoGFX_init(MonoGFX_DisplayTypedef* disp);
+void MonoGFX_deinit(MonoGFX_DisplayTypedef* disp);
 
+void MonoGFX_set_active_display(MonoGFX_DisplayTypedef* disp);
+MonoGFX_DisplayTypedef* MonoGFX_get_active_display();
+
+void MonoGFX_update();
 void MonoGFX_clear();
 
 uint8_t MonoGFX_set_pixel(int32_t x, int32_t y, uint8_t v);
@@ -66,7 +70,8 @@ void MonoGFX_fill_round_rect(int32_t x, int32_t y, uint32_t w, uint32_t h, int32
 void MonoGFX_draw_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t color);
 void MonoGFX_fill_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t color);
 
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

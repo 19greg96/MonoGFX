@@ -4,84 +4,109 @@
 #include <stdlib.h>
 
 
-MonoGFX_BufferTypedef* activeBuffer = NULL;
+MonoGFX_DisplayTypedef* activeDisplay = NULL;
 
 void MonoGFX_flood_fill_util(int32_t x, int32_t y, uint8_t prevC, uint8_t newC);
 void MonoGFX_draw_circle_util(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, uint8_t color);
 void MonoGFX_fill_circle_util(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t centerLength, uint8_t color);
 
 
-void MonoGFX_init(MonoGFX_BufferTypedef* buff) {
-	MonoGFX_setActiveBuffer(buff);
+void MonoGFX_init(MonoGFX_DisplayTypedef* disp) {
+	MonoGFX_set_active_display(disp);
 	
-	activeBuffer->bufferSize = activeBuffer->width * activeBuffer->height / 8;
-	activeBuffer->buffer = (uint8_t*)calloc(sizeof(uint8_t) * activeBuffer->bufferSize, sizeof(uint8_t)); // data size is 8
+	// if (activeDisplay->driver->get_is_use_external_memory()) {
+		// activeDisplay->bufferSize = 0;
+		// activeDisplay->buffer = NULL;
+	// } else {
+		activeDisplay->bufferSize = activeDisplay->width * activeDisplay->height / 8;
+		activeDisplay->buffer = (uint8_t*)calloc(sizeof(uint8_t) * activeDisplay->bufferSize, sizeof(uint8_t)); // data size is 8
+	// }
 }
-void MonoGFX_deinit(MonoGFX_BufferTypedef* buff) {
-	free(buff->buffer);
+void MonoGFX_deinit(MonoGFX_DisplayTypedef* disp) {
+	// if (activeDisplay->driver->get_is_use_external_memory()) {
+	// } else {
+		free(disp->buffer);
+	// }
 }
 
-void MonoGFX_setActiveBuffer(MonoGFX_BufferTypedef* buff) {
-	activeBuffer = buff;
+void MonoGFX_set_active_display(MonoGFX_DisplayTypedef* disp) {
+	activeDisplay = disp;
 }
-MonoGFX_BufferTypedef* MonoGFX_getActiveBuffer() {
-	return activeBuffer;
+MonoGFX_DisplayTypedef* MonoGFX_get_active_display() {
+	return activeDisplay;
 }
 
 void MonoGFX_clear() {
-	for (uint32_t i = 0; i < activeBuffer->bufferSize; i ++) {
-		activeBuffer->buffer[i] = 0;
-	}
+	// if (activeDisplay->driver->get_is_use_external_memory()) {
+		// for (uint32_t x = 0; x < activeDisplay->width; x ++) {
+			// for (uint32_t y = 0; y < activeDisplay->height; y ++) {
+				// activeDisplay->set_pixel(x, y, MonoGFX_COLOR_OFF);
+			// }
+		// }
+	// } else {
+		for (uint32_t i = 0; i < activeDisplay->bufferSize; i ++) {
+			activeDisplay->buffer[i] = 0;
+		}
+	// }
 }
 
+// void MonoGFX_update() {
+	// activeDisplay->driver->update(activeDisplay->buffer);
+// }
+
 uint8_t MonoGFX_set_pixel(int32_t x, int32_t y, uint8_t v) {
-	if (activeBuffer == NULL) {
+	if (activeDisplay == NULL) {
 		return -1;
 	}
-	if (x < 0 || x >= activeBuffer->width || y < 0 || y >= activeBuffer->height) {
+	if (x < 0 || x >= (int32_t)activeDisplay->width || y < 0 || y >= (int32_t)activeDisplay->height) {
 		return -1;
 	}
 	
-	uint32_t bufferPos = 0; // initialized to avoid warning, TODO: use switch below and default case to solve this.
-	uint8_t byteVal = 0;
-	if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-		// In a 16*2 display, four bytes of the buffer, A, B, C and D are arranged the following way:
-		// aaaaaaaabbbbbbbb
-		// ccccccccdddddddd
-		// BYTE_SIZE = 8 = 2^3
-		// row size in bytes = (width / BYTE_SIZE)
-		// Buffer position for a pixel at location (x, y) is:
-		// (width / BYTE_SIZE) * y + (x / BYTE_SIZE)
-		// (width * y + x) / BYTE_SIZE
-		// (width * y + x) >> 3
-		// activeBuffer->buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
-		bufferPos = (activeBuffer->width * y + x) >> MonoGFX_BYTE_SIZE;
-		byteVal = 0x80 >> (x & 7); // bits arranged left to right
-	} else if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
-		bufferPos = x + ((y >> MonoGFX_BYTE_SIZE) * activeBuffer->width);
-		byteVal = 0x01 << (y & 7); // bits arranged bottom to top
-	}
+	// if (activeDisplay->driver->get_is_use_external_memory()) {
+		// activeDisplay->set_pixel(x, y, v);
+	// } else {
+		uint32_t bufferPos = 0; // initialized to avoid warning, TODO: use switch below and default case to solve this.
+		uint8_t byteVal = 0;
+		if (activeDisplay->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+			// In a 16*2 display, four bytes of the buffer, A, B, C and D are arranged the following way:
+			// aaaaaaaabbbbbbbb
+			// ccccccccdddddddd
+			// BYTE_SIZE = 8 = 2^3
+			// row size in bytes = (width / BYTE_SIZE)
+			// Buffer position for a pixel at location (x, y) is:
+			// (width / BYTE_SIZE) * y + (x / BYTE_SIZE)
+			// (width * y + x) / BYTE_SIZE
+			// (width * y + x) >> 3
+			// activeDisplay->buffer[30 * y + (x >> 3)] |= 0x80 >> (x & 7); // bits arranged in rows
+			bufferPos = (activeDisplay->width * y + x) >> MonoGFX_BYTE_SIZE;
+			byteVal = 0x80 >> (x & 7); // bits arranged left to right
+		} else if (activeDisplay->mode == MonoGFX_DISPLAY_MODE_VERTICAL) {
+			bufferPos = x + ((y >> MonoGFX_BYTE_SIZE) * activeDisplay->width);
+			byteVal = 0x01 << (y & 7); // bits arranged bottom to top
+		}
+		
+		if (v == MonoGFX_COLOR_ON) {
+			activeDisplay->buffer[bufferPos] |= byteVal;
+		} else if (v == MonoGFX_COLOR_INVERT) {
+			activeDisplay->buffer[bufferPos] ^= byteVal;
+		} else if (v == MonoGFX_COLOR_OFF) {
+			activeDisplay->buffer[bufferPos] &= ~byteVal;
+		}
+	// }
 	
-	if (v == MonoGFX_COLOR_ON) {
-		activeBuffer->buffer[bufferPos] |= byteVal;
-	} else if (v == MonoGFX_COLOR_INVERT) {
-		activeBuffer->buffer[bufferPos] ^= byteVal;
-	} else if (v == MonoGFX_COLOR_OFF) {
-		activeBuffer->buffer[bufferPos] &= ~byteVal;
-	}
 	return v;
 }
 uint8_t MonoGFX_get_pixel(int32_t x, int32_t y) {
-	if (activeBuffer == NULL) {
+	if (activeDisplay == NULL) {
 		return -1;
 	}
-	if (x < 0 || x >= activeBuffer->width || y < 0 || y >= activeBuffer->height) {
+	if (x < 0 || x >= (int32_t)activeDisplay->width || y < 0 || y >= (int32_t)activeDisplay->height) {
 		return -1;
 	}
-	if (activeBuffer->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
-		return (activeBuffer->buffer[(activeBuffer->width * y + x) >> MonoGFX_BYTE_SIZE] >> ((~x) & 7)) & 1;
+	if (activeDisplay->mode == MonoGFX_DISPLAY_MODE_HORIZONTAL) {
+		return (activeDisplay->buffer[(activeDisplay->width * y + x) >> MonoGFX_BYTE_SIZE] >> ((~x) & 7)) & 1;
 	} else {
-		return (activeBuffer->buffer[x + ((y >> MonoGFX_BYTE_SIZE) * activeBuffer->width)] >> (y & 7)) & 1;
+		return (activeDisplay->buffer[x + ((y >> MonoGFX_BYTE_SIZE) * activeDisplay->width)] >> (y & 7)) & 1;
 	}
 }
 
@@ -265,7 +290,7 @@ void MonoGFX_fill_rect(int32_t x, int32_t y, uint32_t w, uint32_t h, uint8_t col
 	if (w == 0 || h == 0) {
 		return;
 	}
-	for (int32_t i = x; i < x + w; i ++) {
+	for (int32_t i = x; i < x + (int32_t)w; i ++) {
 		MonoGFX_draw_line(i, y, i, y + h, color);
 	}
 }
