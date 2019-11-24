@@ -10,9 +10,15 @@ Methods for drawing to a buffer:
 
 Every method supports outline or fill. Every method can enable, disable or invert the pixels of the shape.
 
-## Usage
+## Installation
 
-Clone this repo, add `Inc/` to include directories and `Src/` to source directories.
+### Arduino
+Clone this repo to your arduino librarry folder.
+
+### Other
+Clone this repo, add src/ to include directories and source directories.
+
+## Usage
 
  - First create an instance of `MonoGFX_BufferTypedef` structure.
 
