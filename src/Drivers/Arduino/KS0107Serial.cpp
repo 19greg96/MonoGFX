@@ -67,6 +67,7 @@ void KS0107Serial::shiftOut(int8_t data, int8_t control) {
 	SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE0));
 	
 	digitalWrite(this->_slaveSelectPin, LOW);
+	// TODO: the order of shift registers should be a configurable parameter
 	SPI.transfer(control);
 	SPI.transfer(data);
 	digitalWrite(this->_slaveSelectPin, HIGH);
@@ -74,6 +75,7 @@ void KS0107Serial::shiftOut(int8_t data, int8_t control) {
 	SPI.endTransaction();
 }
 void KS0107Serial::write(uint8_t cs_s, uint8_t d_i, uint8_t g_data) {
+	// TODO: these should be configurable parameters
 	uint8_t E	= 0b00010000;
 	uint8_t DI	= 0b00001000;
 	uint8_t CS1	= 0b00000010;

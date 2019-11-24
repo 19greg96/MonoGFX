@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define MonoGFX_COLOR_OFF		0
@@ -35,11 +38,6 @@ typedef enum {
 	MonoGFX_LINE_STYLE_DASHES,
 	MonoGFX_LINE_STYLE_SPARSE_DOTS
 } MonoGFX_LineStyleTypedef;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void MonoGFX_init(MonoGFX_DisplayTypedef* disp);
 void MonoGFX_deinit(MonoGFX_DisplayTypedef* disp);

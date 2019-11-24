@@ -30,6 +30,9 @@ Connections on shift registers:
   - 2 (Qc) - /CS2 on display
   - 3 (Qd) - D/I on display
   - 4 (Qe) - E on display
+ - Chain shift registers:
+  - 9 (Qh' first shift register) - 14 (SER second shift register)
+  - Don't forget to connect Vcc and GND of shift registers
 Connections on display:
  - Vdd - +5V
  - Vss - Ground
