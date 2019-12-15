@@ -13,10 +13,10 @@ Every method supports outline or fill. Every method can enable, disable or inver
 ## Installation
 
 ### Arduino
-Clone this repo to your arduino librarry folder.
+Clone this repo to your arduino library folder.
 
 ### Other
-Clone this repo, add src/ to include directories and source directories.
+Clone this repo, add `src/` to include directories and source directories.
 
 ## Usage
 
