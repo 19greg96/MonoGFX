@@ -19,13 +19,14 @@ void MonoGFX_init(MonoGFX_DisplayTypedef* disp) {
 		// activeDisplay->buffer = NULL;
 	// } else {
 		activeDisplay->bufferSize = activeDisplay->width * activeDisplay->height / 8;
-		activeDisplay->buffer = (uint8_t*)calloc(sizeof(uint8_t) * activeDisplay->bufferSize, sizeof(uint8_t)); // data size is 8
+		activeDisplay->buffer = (uint8_t*)MONO_GFX_MALLOC(sizeof(uint8_t) * activeDisplay->bufferSize); // data size is 8
+		MonoGFX_clear();
 	// }
 }
 void MonoGFX_deinit(MonoGFX_DisplayTypedef* disp) {
 	// if (activeDisplay->driver->get_is_use_external_memory()) {
 	// } else {
-		free(disp->buffer);
+	MONO_GFX_FREE(disp->buffer);
 	// }
 }
 

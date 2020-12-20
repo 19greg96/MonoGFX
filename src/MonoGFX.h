@@ -1,6 +1,7 @@
 #ifndef __MonoGFX_H
 #define __MonoGFX_H
 
+#include "MonoGFX_config.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
